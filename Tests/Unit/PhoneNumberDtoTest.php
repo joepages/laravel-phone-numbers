@@ -13,7 +13,7 @@ class PhoneNumberDtoTest extends UnitTestCase
     {
         $data = [
             'type' => 'mobile',
-            'country_code' => '+1',
+            'country_code' => '+1:US',
             'number' => '5551234567',
             'extension' => '123',
             'formatted' => '(555) 123-4567',
@@ -25,7 +25,7 @@ class PhoneNumberDtoTest extends UnitTestCase
         $dto = PhoneNumberDto::fromArray($data);
 
         $this->assertEquals('mobile', $dto->type);
-        $this->assertEquals('+1', $dto->countryCode);
+        $this->assertEquals('+1:US', $dto->countryCode);
         $this->assertEquals('5551234567', $dto->number);
         $this->assertEquals('123', $dto->extension);
         $this->assertEquals('(555) 123-4567', $dto->formatted);
@@ -38,14 +38,14 @@ class PhoneNumberDtoTest extends UnitTestCase
     {
         $dto = new PhoneNumberDto(
             type: 'work',
-            countryCode: '+44',
+            countryCode: '+44:GB',
             number: '2071234567',
         );
 
         $array = $dto->toArray();
 
         $this->assertEquals('work', $array['type']);
-        $this->assertEquals('+44', $array['country_code']);
+        $this->assertEquals('+44:GB', $array['country_code']);
         $this->assertEquals('2071234567', $array['number']);
         $this->assertFalse($array['is_primary']);
         $this->assertFalse($array['is_verified']);
@@ -59,7 +59,7 @@ class PhoneNumberDtoTest extends UnitTestCase
         config(['phone-numbers.default_type' => 'work']);
 
         $data = [
-            'country_code' => '+1',
+            'country_code' => '+1:US',
             'number' => '5559876543',
         ];
 
@@ -72,7 +72,7 @@ class PhoneNumberDtoTest extends UnitTestCase
     {
         $data = [
             'type' => 'mobile',
-            'country_code' => '+1',
+            'country_code' => '+1:US',
             'number' => '5551234567',
         ];
 
@@ -85,7 +85,7 @@ class PhoneNumberDtoTest extends UnitTestCase
     {
         $data = [
             'type' => 'mobile',
-            'country_code' => '+1',
+            'country_code' => '+1:US',
             'number' => '5551234567',
         ];
 
@@ -98,7 +98,7 @@ class PhoneNumberDtoTest extends UnitTestCase
     {
         $dto = new PhoneNumberDto(
             type: 'mobile',
-            countryCode: '+1',
+            countryCode: '+1:US',
             number: '5551234567',
         );
 

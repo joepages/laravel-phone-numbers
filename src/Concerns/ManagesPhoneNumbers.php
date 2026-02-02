@@ -28,26 +28,6 @@ use PhoneNumbers\Http\Resources\PhoneNumberResource;
 trait ManagesPhoneNumbers
 {
     /**
-     * Called by BaseApiController::attachRelatedData() during store/update.
-     * Supports bulk sync: if 'phone_numbers' key exists in request, syncs all phone numbers.
-     */
-    protected function attachPhoneNumber(Request $request, Model $model): void
-    {
-        if (! $request->has('phone_numbers')) {
-            return;
-        }
-
-        $phoneNumbersData = $request->input('phone_numbers', []);
-
-        if (empty($phoneNumbersData)) {
-            return;
-        }
-
-        $phoneNumberService = app(PhoneNumberServiceInterface::class);
-        $phoneNumberService->sync($model, $phoneNumbersData);
-    }
-
-    /**
      * List all phone numbers for a parent model.
      */
     public function listPhoneNumbers(int $parentId): JsonResource
@@ -121,6 +101,26 @@ trait ManagesPhoneNumbers
         $phoneNumberService->delete($phoneNumber);
 
         return response()->json(['message' => 'Phone number deleted successfully.'], 200);
+    }
+
+    /**
+     * Called by BaseApiController::attachRelatedData() during store/update.
+     * Supports bulk sync: if 'phone_numbers' key exists in request, syncs all phone numbers.
+     */
+    protected function attachPhoneNumber(Request $request, Model $model): void
+    {
+        if (! $request->has('phone_numbers')) {
+            return;
+        }
+
+        $phoneNumbersData = $request->input('phone_numbers', []);
+
+        if (empty($phoneNumbersData)) {
+            return;
+        }
+
+        $phoneNumberService = app(PhoneNumberServiceInterface::class);
+        $phoneNumberService->sync($model, $phoneNumbersData);
     }
 
     /**

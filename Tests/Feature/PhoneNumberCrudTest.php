@@ -26,7 +26,7 @@ class PhoneNumberCrudTest extends TestCase
 
         $dto = new PhoneNumberDto(
             type: 'mobile',
-            countryCode: '+1',
+            countryCode: '+1:US',
             number: '5551234567',
             extension: null,
             formatted: '(555) 123-4567',
@@ -35,7 +35,7 @@ class PhoneNumberCrudTest extends TestCase
         $phoneNumber = $this->service->store($parent, $dto);
 
         $this->assertInstanceOf(PhoneNumber::class, $phoneNumber);
-        $this->assertEquals('+1', $phoneNumber->country_code);
+        $this->assertEquals('+1:US', $phoneNumber->country_code);
         $this->assertEquals('5551234567', $phoneNumber->number);
         $this->assertEquals('(555) 123-4567', $phoneNumber->formatted);
         $this->assertEquals($parent->getMorphClass(), $phoneNumber->phoneable_type);
@@ -48,7 +48,7 @@ class PhoneNumberCrudTest extends TestCase
 
         $dto = new PhoneNumberDto(
             type: 'mobile',
-            countryCode: '+1',
+            countryCode: '+1:US',
             number: '5551234567',
         );
 
@@ -56,13 +56,13 @@ class PhoneNumberCrudTest extends TestCase
 
         $updateDto = new PhoneNumberDto(
             type: 'work',
-            countryCode: '+44',
+            countryCode: '+44:GB',
             number: '2071234567',
         );
 
         $updated = $this->service->update($phoneNumber, $updateDto);
 
-        $this->assertEquals('+44', $updated->country_code);
+        $this->assertEquals('+44:GB', $updated->country_code);
         $this->assertEquals('2071234567', $updated->number);
         $this->assertEquals('work', $updated->type);
     }
@@ -73,7 +73,7 @@ class PhoneNumberCrudTest extends TestCase
 
         $dto = new PhoneNumberDto(
             type: 'mobile',
-            countryCode: '+1',
+            countryCode: '+1:US',
             number: '5551234567',
         );
 
@@ -92,13 +92,13 @@ class PhoneNumberCrudTest extends TestCase
 
         $this->service->store($parent, new PhoneNumberDto(
             type: 'mobile',
-            countryCode: '+1',
+            countryCode: '+1:US',
             number: '5551234567',
         ));
 
         $this->service->store($parent, new PhoneNumberDto(
             type: 'work',
-            countryCode: '+1',
+            countryCode: '+1:US',
             number: '5559876543',
         ));
 
@@ -113,7 +113,7 @@ class PhoneNumberCrudTest extends TestCase
 
         $phoneNumber1 = $this->service->store($parent, new PhoneNumberDto(
             type: 'mobile',
-            countryCode: '+1',
+            countryCode: '+1:US',
             number: '5551234567',
             isPrimary: true,
         ));
@@ -122,7 +122,7 @@ class PhoneNumberCrudTest extends TestCase
 
         $phoneNumber2 = $this->service->store($parent, new PhoneNumberDto(
             type: 'work',
-            countryCode: '+1',
+            countryCode: '+1:US',
             number: '5559876543',
             isPrimary: true,
         ));
@@ -138,13 +138,13 @@ class PhoneNumberCrudTest extends TestCase
         // Create initial phone numbers
         $phoneNumber1 = $this->service->store($parent, new PhoneNumberDto(
             type: 'mobile',
-            countryCode: '+1',
+            countryCode: '+1:US',
             number: '5551234567',
         ));
 
         $phoneNumber2 = $this->service->store($parent, new PhoneNumberDto(
             type: 'work',
-            countryCode: '+1',
+            countryCode: '+1:US',
             number: '5559876543',
         ));
 
@@ -153,12 +153,12 @@ class PhoneNumberCrudTest extends TestCase
             [
                 'id' => $phoneNumber1->id,
                 'type' => 'mobile',
-                'country_code' => '+1',
+                'country_code' => '+1:US',
                 'number' => '5551111111',
             ],
             [
                 'type' => 'home',
-                'country_code' => '+44',
+                'country_code' => '+44:GB',
                 'number' => '2079999999',
             ],
         ]);
@@ -174,14 +174,14 @@ class PhoneNumberCrudTest extends TestCase
 
         $this->service->store($parent, new PhoneNumberDto(
             type: 'mobile',
-            countryCode: '+1',
+            countryCode: '+1:US',
             number: '5551234567',
             isPrimary: true,
         ));
 
         $this->service->store($parent, new PhoneNumberDto(
             type: 'work',
-            countryCode: '+1',
+            countryCode: '+1:US',
             number: '5559876543',
         ));
 
@@ -199,14 +199,14 @@ class PhoneNumberCrudTest extends TestCase
 
         $phoneNumber1 = $this->service->store($parent, new PhoneNumberDto(
             type: 'mobile',
-            countryCode: '+1',
+            countryCode: '+1:US',
             number: '5551234567',
             isPrimary: true,
         ));
 
         $phoneNumber2 = $this->service->store($parent, new PhoneNumberDto(
             type: 'work',
-            countryCode: '+1',
+            countryCode: '+1:US',
             number: '5559876543',
         ));
 
@@ -216,7 +216,59 @@ class PhoneNumberCrudTest extends TestCase
         $this->assertFalse($phoneNumber1->fresh()->is_primary);
     }
 
-    public function test_e164_attribute(): void
+    public function test_e164_attribute_with_compound_code(): void
+    {
+        $parent = TestModel::create(['name' => 'Test Parent']);
+
+        $phoneNumber = $this->service->store($parent, new PhoneNumberDto(
+            type: 'mobile',
+            countryCode: '+1:US',
+            number: '5551234567',
+        ));
+
+        $this->assertEquals('+15551234567', $phoneNumber->e164);
+    }
+
+    public function test_e164_attribute_with_compound_code_gb(): void
+    {
+        $parent = TestModel::create(['name' => 'Test Parent']);
+
+        $phoneNumber = $this->service->store($parent, new PhoneNumberDto(
+            type: 'mobile',
+            countryCode: '+44:GB',
+            number: '2071234567',
+        ));
+
+        $this->assertEquals('+442071234567', $phoneNumber->e164);
+    }
+
+    public function test_iso_country_code_attribute(): void
+    {
+        $parent = TestModel::create(['name' => 'Test Parent']);
+
+        $phoneNumber = $this->service->store($parent, new PhoneNumberDto(
+            type: 'mobile',
+            countryCode: '+1:US',
+            number: '5551234567',
+        ));
+
+        $this->assertEquals('US', $phoneNumber->iso_country_code);
+    }
+
+    public function test_dial_code_attribute(): void
+    {
+        $parent = TestModel::create(['name' => 'Test Parent']);
+
+        $phoneNumber = $this->service->store($parent, new PhoneNumberDto(
+            type: 'mobile',
+            countryCode: '+1:US',
+            number: '5551234567',
+        ));
+
+        $this->assertEquals('+1', $phoneNumber->dial_code);
+    }
+
+    public function test_e164_with_plain_country_code_still_works(): void
     {
         $parent = TestModel::create(['name' => 'Test Parent']);
 
@@ -227,19 +279,8 @@ class PhoneNumberCrudTest extends TestCase
         ));
 
         $this->assertEquals('+15551234567', $phoneNumber->e164);
-    }
-
-    public function test_e164_attribute_strips_duplicate_plus(): void
-    {
-        $parent = TestModel::create(['name' => 'Test Parent']);
-
-        $phoneNumber = $this->service->store($parent, new PhoneNumberDto(
-            type: 'mobile',
-            countryCode: '+44',
-            number: '2071234567',
-        ));
-
-        $this->assertEquals('+442071234567', $phoneNumber->e164);
+        $this->assertNull($phoneNumber->iso_country_code);
+        $this->assertEquals('+1', $phoneNumber->dial_code);
     }
 
     public function test_full_number_attribute_uses_formatted(): void
@@ -248,7 +289,7 @@ class PhoneNumberCrudTest extends TestCase
 
         $phoneNumber = $this->service->store($parent, new PhoneNumberDto(
             type: 'mobile',
-            countryCode: '+1',
+            countryCode: '+1:US',
             number: '5551234567',
             formatted: '(555) 123-4567',
         ));
@@ -262,7 +303,7 @@ class PhoneNumberCrudTest extends TestCase
 
         $phoneNumber = $this->service->store($parent, new PhoneNumberDto(
             type: 'mobile',
-            countryCode: '+1',
+            countryCode: '+1:US',
             number: '5551234567',
         ));
 
@@ -275,12 +316,37 @@ class PhoneNumberCrudTest extends TestCase
 
         $phoneNumber = $this->service->store($parent, new PhoneNumberDto(
             type: 'work',
-            countryCode: '+1',
+            countryCode: '+1:US',
             number: '5551234567',
             extension: '456',
             formatted: '(555) 123-4567',
         ));
 
         $this->assertEquals('(555) 123-4567 ext. 456', $phoneNumber->full_number);
+    }
+
+    public function test_compound_code_distinguishes_same_dial_code_countries(): void
+    {
+        $parent = TestModel::create(['name' => 'Test Parent']);
+
+        $usPhone = $this->service->store($parent, new PhoneNumberDto(
+            type: 'mobile',
+            countryCode: '+1:US',
+            number: '5551234567',
+        ));
+
+        $caPhone = $this->service->store($parent, new PhoneNumberDto(
+            type: 'mobile',
+            countryCode: '+1:CA',
+            number: '4161234567',
+        ));
+
+        // Both produce the same E.164 dial code
+        $this->assertEquals('+1', $usPhone->dial_code);
+        $this->assertEquals('+1', $caPhone->dial_code);
+
+        // But different ISO country codes
+        $this->assertEquals('US', $usPhone->iso_country_code);
+        $this->assertEquals('CA', $caPhone->iso_country_code);
     }
 }

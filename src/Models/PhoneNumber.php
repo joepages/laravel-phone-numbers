@@ -28,13 +28,12 @@ class PhoneNumber extends Model
         'metadata',
     ];
 
-    protected function casts(): array
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory()
     {
-        return [
-            'is_primary' => 'boolean',
-            'is_verified' => 'boolean',
-            'metadata' => 'array',
-        ];
+        return \PhoneNumbers\Database\Factories\PhoneNumberFactory::new();
     }
 
     // =========================================================================
@@ -91,13 +90,50 @@ class PhoneNumber extends Model
     }
 
     /**
-     * Get the E.164 formatted phone number (+{country_code}{number}).
+     * Get the E.164 formatted phone number (+{dialCode}{number}).
+     *
+     * Supports both plain dial codes ("+1") and compound codes ("+1:US").
+     * When a compound code is stored, the dial code portion (before the colon)
+     * is used for the E.164 representation.
      */
     public function getE164Attribute(): string
     {
-        $code = ltrim($this->country_code, '+');
+        $code = $this->country_code;
+
+        // Handle compound format "+1:US" — extract the dial code before the colon
+        if (str_contains($code, ':')) {
+            $code = explode(':', $code)[0];
+        }
+
+        $code = ltrim($code, '+');
 
         return "+{$code}{$this->number}";
+    }
+
+    /**
+     * Get the ISO country code portion from a compound country_code (e.g. "US" from "+1:US").
+     * Returns null if the country_code is not in compound format.
+     */
+    public function getIsoCountryCodeAttribute(): ?string
+    {
+        if (str_contains($this->country_code, ':')) {
+            return explode(':', $this->country_code)[1] ?? null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the dial code portion from the country_code (e.g. "+1" from "+1:US").
+     * If stored in plain format, returns the country_code as-is.
+     */
+    public function getDialCodeAttribute(): string
+    {
+        if (str_contains($this->country_code, ':')) {
+            return explode(':', $this->country_code)[0];
+        }
+
+        return $this->country_code;
     }
 
     /**
@@ -114,11 +150,12 @@ class PhoneNumber extends Model
         return $base;
     }
 
-    /**
-     * Create a new factory instance for the model.
-     */
-    protected static function newFactory()
+    protected function casts(): array
     {
-        return \PhoneNumbers\Database\Factories\PhoneNumberFactory::new();
+        return [
+            'is_primary' => 'boolean',
+            'is_verified' => 'boolean',
+            'metadata' => 'array',
+        ];
     }
 }

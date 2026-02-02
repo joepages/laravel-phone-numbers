@@ -20,7 +20,7 @@ return new class extends Migration
             $table->boolean('is_primary')->default(false);
 
             // Phone number fields
-            $table->string('country_code', 5);
+            $table->string('country_code', 10);
             $table->string('number');
             $table->string('extension')->nullable();
             $table->string('formatted')->nullable();
