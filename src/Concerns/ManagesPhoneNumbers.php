@@ -65,7 +65,7 @@ trait ManagesPhoneNumbers
     /**
      * Store a new phone number for a parent model.
      */
-    public function storePhoneNumber(PhoneNumberRequest $request, int $parentId): JsonResource
+    public function storePhoneNumber(PhoneNumberRequest $request, int $parentId): JsonResponse
     {
         $parent = $this->resolveParentModel($parentId);
 
@@ -77,8 +77,7 @@ trait ManagesPhoneNumbers
 
         return (new PhoneNumberResource($phoneNumber))
             ->response()
-            ->setStatusCode(201)
-            ->original;
+            ->setStatusCode(201);
     }
 
     /**
