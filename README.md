@@ -90,7 +90,7 @@ $facility->phoneNumbersOfType('mobile'); // Filtered by type (MorphMany)
 |-------|------|-------------|
 | `type` | string | Phone type (`mobile`, `home`, `work`, `fax`, `other`) |
 | `is_primary` | boolean | Whether this is the primary phone number |
-| `country_code` | string | Dial code (e.g. `+1`, `+44`) |
+| `country_code` | string | Compound dial code + ISO country (e.g. `+1:US`, `+44:GB`) or plain dial code (`+1`) |
 | `number` | string | Phone number digits |
 | `extension` | string\|null | Extension number |
 | `formatted` | string\|null | Display-formatted number (e.g. `(555) 123-4567`) |
@@ -112,7 +112,22 @@ PhoneNumber::verified()->get();          // Only verified numbers
 $phone->markAsPrimary();   // Sets as primary, unsets all others for the same parent
 $phone->e164;              // "+15551234567" (E.164 format)
 $phone->full_number;       // "(555) 123-4567 ext. 200" (formatted + extension)
+$phone->dial_code;         // "+1" (dial code portion of country_code)
+$phone->iso_country_code;  // "US" (ISO portion of compound country_code, or null)
 ```
+
+## Country Code Format
+
+The `country_code` field supports a compound format `+{dialCode}:{isoCode}` that pairs the dial code with the ISO 3166-1 alpha-2 country code. This disambiguates countries that share the same dial code (e.g. US and Canada both use `+1`).
+
+| Format | Example | Dial Code | ISO Code |
+|--------|---------|-----------|----------|
+| Compound | `+1:US` | `+1` | `US` |
+| Compound | `+1:CA` | `+1` | `CA` |
+| Compound | `+44:GB` | `+44` | `GB` |
+| Plain (legacy) | `+1` | `+1` | `null` |
+
+The compound format is recommended. Plain dial codes are still supported for backwards compatibility but `iso_country_code` will return `null`.
 
 ## Controller Trait
 
@@ -132,13 +147,13 @@ When your controller extends `BaseApiController`, the `attachPhoneNumber()` meth
   "phone_numbers": [
     {
       "id": 1,
-      "country_code": "+1",
+      "country_code": "+1:US",
       "number": "5559999999",
       "formatted": "(555) 999-9999"
     },
     {
-      "country_code": "+1",
-      "number": "5551234567",
+      "country_code": "+44:GB",
+      "number": "2071234567",
       "type": "work",
       "is_primary": true
     }
@@ -178,7 +193,7 @@ The `PhoneNumberRequest` form request validates:
 
 | Field | Rules |
 |-------|-------|
-| `country_code` | required, string, max:5 |
+| `country_code` | required, string, max:10 |
 | `number` | required, string, max:20 |
 | `extension` | nullable, string, max:10 |
 | `formatted` | nullable, string, max:30 |
@@ -216,7 +231,7 @@ CREATE TABLE phone_numbers (
     phoneable_id   BIGINT UNSIGNED NOT NULL,
     type           VARCHAR(50) DEFAULT 'mobile',
     is_primary     BOOLEAN DEFAULT FALSE,
-    country_code   VARCHAR(5) NOT NULL,
+    country_code   VARCHAR(10) NOT NULL,
     number         VARCHAR(255) NOT NULL,
     extension      VARCHAR(255) NULL,
     formatted      VARCHAR(255) NULL,
