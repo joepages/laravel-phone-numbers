@@ -1,0 +1,45 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "your-vendor/phone-numbers",
+    "description": "Polymorphic phone numbers package for Laravel - Attach N phone numbers to any model",
+    "keywords": ["laravel", "phone-numbers", "polymorphic", "multi-tenancy"],
+    "license": "MIT",
+    "type": "library",
+    "require": {
+        "php": "^8.2",
+        "illuminate/contracts": "^11.0|^12.0",
+        "illuminate/support": "^11.0|^12.0",
+        "illuminate/database": "^11.0|^12.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0",
+        "phpunit/phpunit": "^11.0|^12.0",
+        "mockery/mockery": "^1.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "PhoneNumbers\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PhoneNumbers\\Tests\\": "Tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "PhoneNumbers\\PhoneNumbersServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
