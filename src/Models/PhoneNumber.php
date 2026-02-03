@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use PhoneNumbers\Database\Factories\PhoneNumberFactory;
 
 class PhoneNumber extends Model
 {
@@ -33,7 +34,7 @@ class PhoneNumber extends Model
      */
     protected static function newFactory()
     {
-        return \PhoneNumbers\Database\Factories\PhoneNumberFactory::new();
+        return PhoneNumberFactory::new();
     }
 
     // =========================================================================

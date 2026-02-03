@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhoneNumbers\Tests;
 
+use Orchestra\Testbench\TestCase as OrchestraTestCase;
 use PhoneNumbers\PhoneNumbersServiceProvider;
 use Tests\TestCase as LaravelTestCase;
 
@@ -19,7 +20,7 @@ if (class_exists(LaravelTestCase::class)) {
 } else {
     // @codeCoverageIgnoreStart
     /** @noRector \Rector\CodingStyle\Rector\Stmt\UseClassKeywordForClassNameResolutionRector */
-    abstract class UnitTestCaseBase extends \Orchestra\Testbench\TestCase {} // @codingStandardsIgnoreLine
+    abstract class UnitTestCaseBase extends OrchestraTestCase {} // @codingStandardsIgnoreLine
     // @codeCoverageIgnoreEnd
 }
 
