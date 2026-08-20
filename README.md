@@ -9,7 +9,7 @@ Polymorphic phone numbers for Laravel. Attach multiple phone numbers to any Eloq
 ## Requirements
 
 - PHP 8.2+
-- Laravel 11 or 12
+- Laravel 11+
 
 ## Installation
 
