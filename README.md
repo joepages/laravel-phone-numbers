@@ -164,6 +164,8 @@ When your controller extends `BaseApiController`, the `attachPhoneNumber()` meth
 - Records **with an `id`** are updated
 - Records **without an `id`** are created
 - Existing records **not included** in the array are deleted
+- An **empty array** (`"phone_numbers": []`) removes all of them
+- **Omitting the `phone_numbers` key entirely** leaves the existing phone numbers untouched
 
 ## API Resource
 

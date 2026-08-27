@@ -85,10 +85,10 @@ class PhoneNumberService implements PhoneNumberServiceInterface
             $keptIds[] = $phoneNumber->id;
         }
 
-        // Delete phone numbers not in the payload
-        if (! empty($keptIds)) {
-            $this->repository->deleteWhereNotIn($parent, $keptIds);
-        }
+        // Delete phone numbers not in the payload. Unconditional: an empty
+        // $keptIds means the caller kept none, so all of the parent's
+        // phone numbers go.
+        $this->repository->deleteWhereNotIn($parent, $keptIds);
 
         return $this->getForParent($parent);
     }

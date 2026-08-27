@@ -97,7 +97,7 @@ Resolve via `app(PhoneNumberServiceInterface::class)` or constructor injection (
 | `delete` | `(PhoneNumber $phoneNumber): bool` | Hard delete. |
 | `getForParent` | `(Model $parent): Collection` | All numbers for the parent, ordered `is_primary` desc, then `type` asc. |
 | `findForParent` | `(int $phoneNumberId, Model $parent): ?PhoneNumber` | The row only if it belongs to that parent; otherwise `null`. |
-| `sync` | `(Model $parent, array $phoneNumbersData): Collection` | Per item: has `id` belonging to parent → update; else → create. Rows absent from the payload are deleted. Returns the resulting collection. An empty array deletes nothing. |
+| `sync` | `(Model $parent, array $phoneNumbersData): Collection` | Per item: has `id` belonging to parent → update; else → create. Rows absent from the payload are deleted. Returns the resulting collection. An empty array deletes every phone number of the parent. |
 
 ### Repository: `PhoneNumbers\Contracts\PhoneNumberRepositoryInterface`
 
@@ -142,7 +142,7 @@ Public endpoint methods (all resolve the parent, then call `$this->authorize(...
 Protected integration hooks:
 
 - `resolveParentModel(int $parentId): Model` — default implementation calls `$this->service->getById($parentId)`. Your controller must expose a `$service` with `getById()`, or override this method (e.g. `return Customer::findOrFail($parentId);`).
-- `attachPhoneNumber(Request $request, Model $model): void` — bulk-sync hook: if the request has a non-empty `phone_numbers` array, calls `sync()`. The package never calls this itself; invoke it from your own store/update flow (e.g. a base controller's attach-related-data step).
+- `attachPhoneNumber(Request $request, Model $model): void` — bulk-sync hook: if the request has a `phone_numbers` array — including an empty one, which clears the collection — calls `sync()`. No-op when the key is absent or not an array. The package never calls this itself; invoke it from your own store/update flow (e.g. a base controller's attach-related-data step).
 
 The trait uses `$this->authorize()`, so the controller needs Laravel's `AuthorizesRequests` trait and a registered policy for the parent model.
 
@@ -309,7 +309,7 @@ CustomerResource::make($customer->load('phoneNumbers', 'primaryPhoneNumber'));
 
 - **No package events or custom exceptions.** Standard Eloquent model events fire for single-row create/update/delete — but `markAsPrimary()`, `unsetPrimaryForParent()`, and sync's delete-missing step use mass Eloquent-builder operations that **bypass model events/observers** on sibling rows (the mass updates still bump sibling `updated_at`, as Eloquent mass updates do).
 - **Update is full-replace, not patch.** `PhoneNumberDto::toArray()` always emits every field, so `service->update()` with a DTO that omits `extension`/`formatted`/`metadata` nulls them, and omitting `is_primary`/`is_verified` resets them to `false`. Resend the complete record on update (the `sync` payload has the same semantics).
-- **Sync never wipes everything.** With an empty `phone_numbers` array, `sync()` skips the delete step and returns the existing rows; `attachPhoneNumber()` likewise no-ops when the key is absent or empty. To delete all numbers, delete them explicitly.
+- **An empty payload wipes the collection.** With an empty `phone_numbers` array, `sync()` keeps nothing and deletes every number of the parent; `attachPhoneNumber()` passes that array straight through. It no-ops only when the key is absent or not an array. (Before 1.2.1 an empty payload was silently a no-op.)
 - **404 semantics.** `updatePhoneNumber`/`deletePhoneNumber` abort 404 when the phone-number id exists but belongs to a different parent (`findForParent` scopes by morph type + id).
 - **Authorization is mandatory in the controller trait** — `view` to list, `update` to store/update/delete. `Illuminate\Auth\Access\AuthorizationException` (403) when the policy denies or no policy is registered.
 - **No phone validation library.** `number` is any string ≤ 20 chars; `e164` is naive concatenation (`"+", dial code, number`). Normalize/validate digits in your app if you need real E.164 guarantees. Garbage in (`number: "abc"`) produces `"+1abc"`.
@@ -326,7 +326,7 @@ CustomerResource::make($customer->load('phoneNumbers', 'primaryPhoneNumber'));
 - ❌ Storing `country_code` as `'US'` or `'1'` and expecting `e164`/`iso_country_code` to work → ✅ store `'+1:US'` (compound) or `'+1'` (plain); `iso_country_code` is only non-null for the compound `dial:ISO` format.
 - ❌ Using `ManagesPhoneNumbers` on a controller with no `$service->getById()` and no override → ✅ override `resolveParentModel(int $parentId): Model` (e.g. `findOrFail`) or expose a `$service` with `getById()`; also add `AuthorizesRequests` and a policy or every request 403s.
 - ❌ Expecting `phone_numbers` / `primary_phone_number` in `WithPhoneNumbersResource` output after `Customer::find()` → ✅ both use `whenLoaded()`; eager-load `->load('phoneNumbers', 'primaryPhoneNumber')` first.
-- ❌ Calling `sync($parent, [])` to remove all numbers → ✅ empty payloads are a no-op for deletion; delete rows explicitly via `service->delete()`.
+- ❌ Sending `phone_numbers: []` expecting the collection to be preserved → ✅ an empty array clears it; omit the key entirely for a partial update that leaves numbers untouched.
 - ❌ Setting `allow_custom_types => false` and still sending `type: 'emergency'` → ✅ with strict mode, `type` must be one of `config('phone-numbers.types')`; either add it to `types` or keep `allow_custom_types` true.
 
 ## Version notes

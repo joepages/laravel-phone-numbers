@@ -113,9 +113,11 @@ trait ManagesPhoneNumbers
             return;
         }
 
-        $phoneNumbersData = $request->input('phone_numbers', []);
+        $phoneNumbersData = $request->input('phone_numbers');
 
-        if (empty($phoneNumbersData)) {
+        // An empty array is an instruction ("remove them all"), not a missing
+        // one — only a non-array payload is ignored here.
+        if (! is_array($phoneNumbersData)) {
             return;
         }
 
